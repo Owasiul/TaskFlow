@@ -3,7 +3,16 @@
 
 @variant dark (&:is(.dark *));
 
-@theme {
-  --color-primary: light-dark(#10b981, #dc2626);
-  --color-surface: light-dark(#f8fafc, #0f172a);
+@layer base {
+  html {
+    min-height: 100%;
+    background-color: var(--color-surface);
+    color: var(--color-primary);
+  }
+
+  body {
+    @apply min-h-full;
+  }
+
+
 }

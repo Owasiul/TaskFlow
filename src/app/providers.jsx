@@ -9,6 +9,7 @@ export function Providers({ children }) {
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange
+      enableColorScheme={false}
     >
       {children}
     </ThemeProvider>
