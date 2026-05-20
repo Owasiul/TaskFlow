@@ -22,7 +22,7 @@ const Navbar = () => {
       className="text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800 "
       key="about"
     >
-      <Link href="/About">About</Link>
+      <Link href="/about">About</Link>
     </li>,
   ];
   return (
@@ -43,9 +43,12 @@ const Navbar = () => {
               {navItems}
             </ul>
           </div>
-          <a className="text-3xl text-violet-800 dark:text-pink-400 font-bold ">
+          <Link
+            href={`/`}
+            className="text-3xl text-violet-800 dark:text-pink-400 font-bold "
+          >
             TaskFlow
-          </a>
+          </Link>
         </div>
         <div className="navbar-center hidden lg:flex">
           <ul className="menu menu-horizontal px-1 text-slate-950 dark:text-white">
