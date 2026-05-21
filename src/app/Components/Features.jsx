@@ -10,6 +10,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react";
+import Link from "next/link";
 
 const FeatureCard = ({
   icon: Icon,
@@ -310,7 +311,7 @@ const Features = () => {
         {/* CTA */}
         <div className="text-center mt-16">
           <button className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-xl font-semibold hover:bg-violet-700 transition-all hover:scale-105 shadow-lg hover:shadow-xl">
-            Get Started Free
+            <Link href={`/register`}> Get Started Free </Link>
             <Sparkles className="w-4 h-4" />
           </button>
           <p className="text-sm font-medium text-gray-500 mt-4">
