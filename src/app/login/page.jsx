@@ -4,11 +4,29 @@ import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 const Login = () => {
   const { handleSubmit, register } = useForm();
   const [showPassword, setShowPassword] = useState();
-  const submitForm = (data) => {
-    console.log(data);
+  const router = useRouter();
+  const submitForm = async (data) => {
+    try {
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+      console.log("Login result:", result);
+      if (result?.ok) {
+        console.log("Login successful, redirecting...");
+        router.push(result.url || "/");
+      } else {
+        console.log("Login failed:", result?.error || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
   return (
     <div>
