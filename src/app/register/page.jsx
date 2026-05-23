@@ -2,14 +2,44 @@
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 
 const Register = () => {
   const { handleSubmit, register } = useForm();
-  const [showPassword, setShowPassword] = useState();
-  const submitForm = (data) => {
-    console.log(data);
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+
+  const submitForm = async (data) => {
+    const formData = {
+      name: data.name,
+      email: data.email,
+      password: data.password,
+    };
+    try {
+      const result = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await result.json();
+      if (data.success === false) {
+        alert(data.message);
+      } else {
+        // router.push("/dashboard");
+        alert("Registration successful!");
+        // Redirect to login
+      }
+      console.log("User registered successfully:", data);
+      return data;
+      // Add success handling (redirect, toast, etc.)
+    } catch (error) {
+      console.error("Registration failed:", error);
+      // Add error handling
+    }
   };
   return (
     <div>

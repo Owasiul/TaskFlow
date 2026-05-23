@@ -1,11 +1,7 @@
+import { dbConnect } from "@/app/lib/dbConnect";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
-const userList = [
-  { email: "dablu@gmail.com", password: 123456 },
-  { email: "Tablu@gmail.com", password: 12456 },
-  { email: "Lablu@gmail.com", password: 123567 },
-];
+import bcrypt from "bcryptjs";
 
 export const authOptions = {
   // Configure one or more authentication providers
@@ -24,13 +20,12 @@ export const authOptions = {
       },
       async authorize(credentials, req) {
         const { email, password } = credentials;
-        // console.log("crede..", credentials);
-        const user = userList.find((u) => u.email === email);
-        // console.log("user is", user);
+        const usersCollection = dbConnect("users");
+        const user = await usersCollection.findOne({ email });
         if (!user) {
           return null;
         }
-        const passwordOk = user.password == password;
+        const passwordOk = await bcrypt.compare(password, user.password);
         if (passwordOk) {
           return user;
         }

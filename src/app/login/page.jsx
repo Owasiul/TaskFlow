@@ -17,10 +17,9 @@ const Login = () => {
         password: data.password,
         redirect: false,
       });
-      console.log("Login result:", result);
       if (result?.ok) {
-        console.log("Login successful, redirecting...");
-        router.push(result.url || "/");
+        // router.push("/dashboard");
+        alert("Login Success");
       } else {
         console.log("Login failed:", result?.error || "Unknown error");
       }
@@ -32,7 +31,7 @@ const Login = () => {
     <div>
       <div className="min-h-screen flex items-center justify-center p-4 shadow-sm">
         <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
-          {/* Left Side - Form */}
+          {/* left side form */}
           <div className="md:w-5/12 p-10 md:p-12 flex flex-col">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
