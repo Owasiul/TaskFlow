@@ -1,46 +1,105 @@
 "use client";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Upload, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 const Register = () => {
   const { handleSubmit, register } = useForm();
   const [showPassword, setShowPassword] = useState(false);
+  const [profilePreview, setProfilePreview] = useState(null); // base64 for local preview
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [cloudinaryUrl, setCloudinaryUrl] = useState(null); // final hosted URL
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const router = useRouter();
 
+  const uploadToCloudinary = async (file) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+      );
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: "POST", body: formData },
+      );
+      const data = await res.json();
+      if (data.secure_url) {
+        setCloudinaryUrl(data.secure_url);
+      } else {
+        alert("Image upload failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      alert("Image upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setProfileImageFile(file);
+    setCloudinaryUrl(null);
+
+    // Show local preview immediately
+    const reader = new FileReader();
+    reader.onloadend = () => setProfilePreview(reader.result);
+    reader.readAsDataURL(file);
+
+    // Upload to Cloudinary in the background
+    uploadToCloudinary(file);
+  };
+
+  const removeImage = (e) => {
+    e.stopPropagation();
+    setProfilePreview(null);
+    setProfileImageFile(null);
+    setCloudinaryUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const submitForm = async (data) => {
+    if (uploading) {
+      alert("Please wait for the image to finish uploading.");
+      return;
+    }
+
     const formData = {
       name: data.name,
       email: data.email,
       password: data.password,
+      photoURL: cloudinaryUrl ?? null, // hosted Cloudinary URL or null if skipped
     };
+
     try {
       const result = await fetch("/api/auth/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      const data = await result.json();
-      if (data.success === false) {
-        alert(data.message);
+      const resData = await result.json();
+      if (resData.success === false) {
+        alert(resData.message);
       } else {
-        // router.push("/dashboard");
         alert("Registration successful!");
-        // Redirect to login
+        router.push("/dashboard");
       }
-      console.log("User registered successfully:", data);
-      return data;
-      // Add success handling (redirect, toast, etc.)
+      console.log("User registered successfully:", resData);
+      return resData;
     } catch (error) {
       console.error("Registration failed:", error);
-      // Add error handling
     }
   };
+
   return (
     <div>
       <div className="min-h-screen flex items-center justify-center p-4 shadow-sm">
@@ -102,11 +161,113 @@ const Register = () => {
                 </div>
               </div>
 
+              {/* Profile Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Profile Picture{" "}
+                  <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
+
+                {/* Hidden native file input — NOT registered with react-hook-form
+                    because we send the Cloudinary URL string, not the raw file */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  id="profile-image-input"
+                />
+
+                {profilePreview ? (
+                  /* Preview state */
+                  <div className="flex items-center gap-4 px-4 py-3 bg-zinc-100 rounded-2xl border border-transparent">
+                    <div className="relative w-12 h-12 shrink-0">
+                      {/* Plain <img> for local base64 preview — CldImage only works with Cloudinary public IDs */}
+                      <Image
+                        src={profilePreview}
+                        alt="Profile preview"
+                        className="w-12 h-12 rounded-full object-cover ring-2 ring-purple-400"
+                      />
+                      {/* Upload spinner overlay */}
+                      {uploading && (
+                        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                          <Loader2
+                            size={16}
+                            className="text-white animate-spin"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-700 truncate">
+                        {profileImageFile?.name}
+                      </p>
+                      <p className="text-xs mt-0.5">
+                        {uploading ? (
+                          <span className="text-purple-500">Uploading…</span>
+                        ) : cloudinaryUrl ? (
+                          <span className="text-green-500">Uploaded ✓</span>
+                        ) : (
+                          <span className="text-gray-400">
+                            {profileImageFile
+                              ? (profileImageFile.size / 1024).toFixed(0) +
+                                " KB"
+                              : ""}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                        disabled={uploading}
+                      >
+                        Change
+                      </button>
+                      <button
+                        type="button"
+                        onClick={removeImage}
+                        className="p-1 text-gray-400 hover:text-red-500 transition"
+                        disabled={uploading}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Empty / drop-zone state */
+                  <label
+                    htmlFor="profile-image-input"
+                    className="flex items-center gap-4 px-4 py-3 bg-zinc-100 rounded-2xl border border-dashed border-zinc-300 hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition group"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-zinc-200 group-hover:bg-purple-100 flex items-center justify-center shrink-0 transition">
+                      <Upload
+                        size={18}
+                        className="text-gray-400 group-hover:text-purple-500 transition"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-600 group-hover:text-purple-600 transition">
+                        Upload a photo
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        PNG, JPG, GIF up to 5 MB
+                      </p>
+                    </div>
+                  </label>
+                )}
+              </div>
+
               <button
                 type="submit"
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3.5 rounded-2xl transition mt-4"
+                disabled={uploading}
+                className="w-full bg-purple-600 hover:bg-purple-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-2xl transition mt-4 flex items-center justify-center gap-2"
               >
-                Create account
+                {uploading && <Loader2 size={18} className="animate-spin" />}
+                {uploading ? "Uploading image…" : "Create account"}
               </button>
             </form>
 
@@ -134,7 +295,7 @@ const Register = () => {
                     alt="Google"
                     className="w-5 h-5"
                   />
-                  <span className="text-sm font-medium text-slate-900 dark:text-white">
+                  <span className="text-sm font-medium text-slate-900">
                     Google
                   </span>
                 </button>
@@ -144,7 +305,7 @@ const Register = () => {
 
           {/* Right Side - Illustration */}
           <div className="hidden md:block md:w-7/12 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('https://picsum.photos/id/1015/1200/900')] bg-cover bg-center "></div>
+            <div className="absolute inset-0 bg-[url('https://picsum.photos/id/1015/1200/900')] bg-cover bg-center"></div>
             <Image
               width={100}
               height={100}

@@ -18,7 +18,7 @@ const Login = () => {
         redirect: false,
       });
       if (result?.ok) {
-        // router.push("/dashboard");
+        router.push("/dashboard");
         alert("Login Success");
       } else {
         console.log("Login failed:", result?.error || "Unknown error");
@@ -106,7 +106,7 @@ const Login = () => {
                     alt="Google"
                     className="w-5 h-5"
                   />
-                  <span className="text-sm font-medium text-slate-900 dark:text-white">
+                  <span className="text-sm font-medium text-slate-900 ">
                     Google
                   </span>
                 </button>
