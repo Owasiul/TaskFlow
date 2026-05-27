@@ -1,8 +1,8 @@
 "use server";
-import bcrypt from "bcryptjs";
 import { dbConnect } from "@/app/lib/dbConnect";
-
+import bcrypt from "bcryptjs";
 const usersCollection = dbConnect("users");
+
 // post users data
 export async function POST(request) {
   try {
@@ -21,6 +21,7 @@ export async function POST(request) {
       name: body.name,
       email: body.email,
       password: hashPassword,
+      photoURL: body.photoURL,
       createdAt: new Date().toISOString(),
     };
     // new user

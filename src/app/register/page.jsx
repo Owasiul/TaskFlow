@@ -44,21 +44,18 @@ const Register = () => {
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setProfileImageFile(file);
     setCloudinaryUrl(null);
 
-    // Show local preview immediately
     const reader = new FileReader();
     reader.onloadend = () => setProfilePreview(reader.result);
     reader.readAsDataURL(file);
 
-    // Upload to Cloudinary in the background
-    uploadToCloudinary(file);
+    await uploadToCloudinary(file); // ← await it
   };
-
   const removeImage = (e) => {
     e.stopPropagation();
     setProfilePreview(null);
@@ -77,11 +74,11 @@ const Register = () => {
       name: data.name,
       email: data.email,
       password: data.password,
-      photoURL: cloudinaryUrl ?? null, // hosted Cloudinary URL or null if skipped
+      photoURL: cloudinaryUrl || null, // hosted Cloudinary URL or null if skipped
     };
 
     try {
-      const result = await fetch("/api/auth/register", {
+      const result = await fetch("/api/auth/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -185,6 +182,8 @@ const Register = () => {
                     <div className="relative w-12 h-12 shrink-0">
                       {/* Plain <img> for local base64 preview — CldImage only works with Cloudinary public IDs */}
                       <Image
+                        width={100}
+                        height={100}
                         src={profilePreview}
                         alt="Profile preview"
                         className="w-12 h-12 rounded-full object-cover ring-2 ring-purple-400"

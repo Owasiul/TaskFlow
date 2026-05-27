@@ -1,10 +1,21 @@
 "use client";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { ToggleTheme } from "./ThemeToggle/Theme";
 import { MenuIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Button, Modal } from "@heroui/react";
+import Avater from "./Avater/Avater";
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { data = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const res = await fetch(`/api/auth/users`);
+      return res.json();
+    },
+  });
   const navItems = [
     <li
       className="text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800 "
@@ -23,6 +34,12 @@ const Navbar = () => {
       key="about"
     >
       <Link href="/about">About</Link>
+    </li>,
+    <li
+      className={`text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800  ${data && data[0]?.email ? "block" : "hidden"} `}
+      key="dashboard"
+    >
+      <Link href="/dashboard">Dashboard</Link>
     </li>,
   ];
   return (
@@ -50,7 +67,7 @@ const Navbar = () => {
             TaskFlow
           </Link>
         </div>
-        <div className="navbar-center hidden lg:flex">
+        <div className="navbar-center hidden lg:flex lg:items-center">
           <ul className="menu menu-horizontal px-1 text-slate-950 dark:text-white">
             {navItems}
           </ul>
@@ -60,17 +77,58 @@ const Navbar = () => {
             <ToggleTheme />
           </div>
 
-          <Link
-            href={`/login`}
-            className="text-violet-800 dark:text-pink-400 font-semibold md:block hidden"
-          >
-            Login
-          </Link>
-          <Link href={`/register`} className="">
-            <button className="btn rounded w-24 bg-violet-800 dark:bg-pink-400 text-white font-semibold text-nowrap">
-              Get Started
-            </button>
-          </Link>
+          {data && data.length > 0 ? (
+            <div className="flex items-center gap-4">
+              <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
+                <Modal.Trigger>
+                  <div>
+                    <Avater data={data} />
+                  </div>
+                </Modal.Trigger>
+                <Modal.Backdrop>
+                  <Modal.Container>
+                    <Modal.Dialog>
+                      <Modal.Header className="flex flex-col gap-1">
+                        Profile
+                      </Modal.Header>
+                      <Modal.Body>
+                        <p>Manage your account and sign out from here.</p>
+                        <Button
+                          color="danger"
+                          variant="flat"
+                          onPress={() => setIsOpen(false)}
+                        >
+                          Sign Out
+                        </Button>
+                      </Modal.Body>
+                      <Modal.Footer>
+                        <Button
+                          color="primary"
+                          onPress={() => setIsOpen(false)}
+                        >
+                          Close
+                        </Button>
+                      </Modal.Footer>
+                    </Modal.Dialog>
+                  </Modal.Container>
+                </Modal.Backdrop>
+              </Modal>
+            </div>
+          ) : (
+            <>
+              <Link
+                href={`/login`}
+                className="text-violet-800 dark:text-pink-400 font-semibold md:block hidden"
+              >
+                Login
+              </Link>
+              <Link href={`/register`} className="">
+                <button className="btn rounded w-24 bg-violet-800 dark:bg-pink-400 text-white font-semibold text-nowrap">
+                  Get Started
+                </button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </div>
