@@ -21,14 +21,18 @@ export const authOptions = {
       },
       async authorize(credentials, req) {
         const { email, password } = credentials;
-        const usersCollection = dbConnect("users");
+        const usersCollection = await dbConnect("users");
         const user = await usersCollection.findOne({ email });
         if (!user) {
           return null;
         }
         const passwordOk = await bcrypt.compare(password, user.password);
         if (passwordOk) {
-          return user;
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+          };
         }
         return null;
       },
@@ -42,6 +46,28 @@ export const authOptions = {
   pages: {
     signIn: "/login",
     register: "/register",
+  },
+
+  callbacks: {
+    async jwt({ token, user }) {
+      // Add user data to token when user signs in
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      // Add token data to session
+      if (token) {
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.name = token.name;
+      }
+      return session;
+    },
   },
 
   secret: process.env.NEXTAUTH_SECRET,

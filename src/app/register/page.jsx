@@ -1,10 +1,12 @@
 "use client";
 import { Eye, EyeOff, Upload, X, Loader2 } from "lucide-react";
+import { signIn } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const { handleSubmit, register } = useForm();
@@ -85,9 +87,9 @@ const Register = () => {
       });
       const resData = await result.json();
       if (resData.success === false) {
-        alert(resData.message);
+        toast.error(resData.message);
       } else {
-        alert("Registration successful!");
+        toast.success("Registration successful!");
         router.push("/dashboard");
       }
       console.log("User registered successfully:", resData);
@@ -286,7 +288,10 @@ const Register = () => {
                 Or continue with
               </p>
               <div className="flex gap-3">
-                <button className="flex-1 flex items-center justify-center gap-3 border border-gray-300 hover:bg-gray-50 py-3 rounded-2xl transition">
+                <button
+                  onClick={() => signIn("google")}
+                  className="flex-1 flex items-center justify-center gap-3 border border-gray-300 hover:bg-gray-50 py-3 rounded-2xl transition"
+                >
                   <Image
                     width={20}
                     height={20}

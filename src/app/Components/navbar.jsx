@@ -3,45 +3,59 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { ToggleTheme } from "./ThemeToggle/Theme";
 import { MenuIcon } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { Button, Modal } from "@heroui/react";
 import Avater from "./Avater/Avater";
+import { useSession, signOut } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const { data = [] } = useQuery({
-    queryKey: ["users"],
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id;
+
+  const { data: currentUser } = useQuery({
+    queryKey: ["user", userId],
     queryFn: async () => {
-      const res = await fetch(`/api/auth/users`);
+      if (!userId) return null;
+
+      const res = await fetch(`/api/auth/users/${userId}`);
+      if (!res.ok) {
+        throw new Error("Failed to fetch current user");
+      }
+
       return res.json();
     },
   });
+
+  const isLoggedIn = status === "authenticated";
+
   const navItems = [
     <li
-      className="text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800 "
+      className="text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800"
       key="solutions"
     >
       <Link href="/solutions">Solutions</Link>
     </li>,
     <li
-      className="text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800 "
+      className="text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800"
       key="pricing"
     >
       <Link href="/pricing">Pricing</Link>
     </li>,
     <li
-      className="text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800 "
+      className="text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800"
       key="about"
     >
       <Link href="/about">About</Link>
     </li>,
     <li
-      className={`text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800  ${data && data[0]?.email ? "block" : "hidden"} `}
+      className={`text-lg font-semibold dark:hover:text-pink-400 hover:text-violet-800 ${isLoggedIn ? "block" : "hidden"}`}
       key="dashboard"
     >
       <Link href="/dashboard">Dashboard</Link>
     </li>,
   ];
+
   return (
     <div>
       <div className="navbar shadow-sm dark:shadow-white dark:border-b-pink-400 border-b-violet-800 md:px-5">
@@ -52,7 +66,7 @@ const Navbar = () => {
             </div>
             <ul
               tabIndex="-1"
-              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow  text-white gap-5 font-semibold"
+              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow text-white gap-5 font-semibold"
             >
               <div className="lg:hidden block">
                 <ToggleTheme />
@@ -61,8 +75,8 @@ const Navbar = () => {
             </ul>
           </div>
           <Link
-            href={`/`}
-            className="text-3xl text-violet-800 dark:text-pink-400 font-bold "
+            href="/"
+            className="text-3xl text-violet-800 dark:text-pink-400 font-bold"
           >
             TaskFlow
           </Link>
@@ -77,34 +91,44 @@ const Navbar = () => {
             <ToggleTheme />
           </div>
 
-          {data && data.length > 0 ? (
+          {isLoggedIn ? (
             <div className="flex items-center gap-4">
-              <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
-                <Modal.Trigger>
-                  <div>
-                    <Avater data={data} />
-                  </div>
-                </Modal.Trigger>
+              <div
+                onClick={() => setIsModalOpen(true)}
+                className="cursor-pointer"
+              >
+                <Avater data={currentUser || session?.user} users={currentUser || session?.user} />
+              </div>
+
+              <Modal
+                isOpen={isModalOpen}
+                onOpenChange={(isOpen) => setIsModalOpen(isOpen)}
+              >
                 <Modal.Backdrop>
                   <Modal.Container>
                     <Modal.Dialog>
-                      <Modal.Header className="flex flex-col gap-1">
-                        Profile
+                      <Modal.CloseTrigger
+                        onClick={() => setIsModalOpen(false)}
+                      />
+                      <Modal.Header>
+                        <Modal.Heading>Profile</Modal.Heading>
                       </Modal.Header>
                       <Modal.Body>
-                        <p>Manage your account and sign out from here.</p>
                         <Button
-                          color="danger"
-                          variant="flat"
-                          onPress={() => setIsOpen(false)}
+                        className={`btn bg-danger`}
+                          onPress={() => {
+                            setIsModalOpen(false);
+                            signOut({ callbackUrl: "/" });
+                          }}
                         >
                           Sign Out
                         </Button>
                       </Modal.Body>
                       <Modal.Footer>
                         <Button
+                          slot="close"
                           color="primary"
-                          onPress={() => setIsOpen(false)}
+                          onClick={() => setIsModalOpen(false)}
                         >
                           Close
                         </Button>
@@ -117,12 +141,12 @@ const Navbar = () => {
           ) : (
             <>
               <Link
-                href={`/login`}
+                href="/login"
                 className="text-violet-800 dark:text-pink-400 font-semibold md:block hidden"
               >
                 Login
               </Link>
-              <Link href={`/register`} className="">
+              <Link href="/register">
                 <button className="btn rounded w-24 bg-violet-800 dark:bg-pink-400 text-white font-semibold text-nowrap">
                   Get Started
                 </button>

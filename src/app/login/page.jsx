@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 const Login = () => {
   const { handleSubmit, register } = useForm();
   const [showPassword, setShowPassword] = useState();
@@ -18,13 +19,13 @@ const Login = () => {
         redirect: false,
       });
       if (result?.ok) {
+        toast.success("Login Success");
         router.push("/dashboard");
-        alert("Login Success");
       } else {
-        console.log("Login failed:", result?.error || "Unknown error");
+        toast.error("Login failed:", result?.error || "Unknown error");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      toast.error("Login error:", error);
     }
   };
   return (
@@ -98,7 +99,10 @@ const Login = () => {
                 Or continue with
               </p>
               <div className="flex gap-3">
-                <button className="flex-1 flex items-center justify-center gap-3 border border-gray-300 hover:bg-gray-50 py-3 rounded-2xl transition">
+                <button
+                  onClick={() => signIn("google")}
+                  className="flex-1 flex items-center justify-center gap-3 border border-gray-300 hover:bg-gray-50 py-3 rounded-2xl transition"
+                >
                   <Image
                     width={20}
                     height={20}

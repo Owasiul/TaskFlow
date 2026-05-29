@@ -4,11 +4,11 @@ import { ThemeProvider } from "next-themes";
 import { SessionProvider } from "next-auth/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-export function Providers({ children }) {
+export function Providers({ children, session }) {
   // Create a client
   const queryClient = new QueryClient();
   return (
-    <SessionProvider>
+    <SessionProvider session={session} refetchInterval={5 * 60}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           attribute="class"
