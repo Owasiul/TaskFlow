@@ -28,6 +28,24 @@ const Login = () => {
       toast.error("Login error:", error);
     }
   };
+
+  // google signIN
+  const googleLogIn = async () => {
+    try {
+      const result = await signIn("google", {
+        redirect: false,
+      });
+      if (result?.ok) {
+        toast.success("Login Successful");
+        router.push("/dashboard");
+      } else {
+        toast.error("Google login failed");
+      }
+    } catch (error) {
+      toast.error("Google login error");
+      console.error(error);
+    }
+  };
   return (
     <div>
       <div className="min-h-screen flex items-center justify-center p-4 shadow-sm">
@@ -100,7 +118,7 @@ const Login = () => {
               </p>
               <div className="flex gap-3">
                 <button
-                  onClick={() => signIn("google")}
+                  onClick={() => googleLogIn()}
                   className="flex-1 flex items-center justify-center gap-3 border border-gray-300 hover:bg-gray-50 py-3 rounded-2xl transition"
                 >
                   <Image

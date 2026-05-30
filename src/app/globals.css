@@ -15,3 +15,9 @@
     @apply min-h-full;
   }
 }
+
+@media (min-width: 320px) and (max-width: 769px) {
+  .sm2md {
+    @apply ml-16;
+  }
+}

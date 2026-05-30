@@ -40,6 +40,9 @@ export const authOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      httpOptions: {
+        timeout: 10000, // increase to 10 seconds
+      },
     }),
     // ...add more providers here
   ],
@@ -50,17 +53,29 @@ export const authOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      // Add user data to token when user signs in
-      if (user) {
-        token.id = user.id;
+      if (user?.email) {
+        const usersCollection = dbConnect("users");
+        let existingUser = await usersCollection.findOne({ email: user.email });
+
+        if (!existingUser) {
+          const newUser = {
+            name: user.name || "Unknown",
+            email: user.email,
+            photoURL: user.image || user.photoURL || null,
+            createdAt: new Date().toISOString(),
+          };
+          const result = await usersCollection.insertOne(newUser);
+          existingUser = { ...newUser, _id: result.insertedId };
+        }
+
+        token.id = existingUser._id.toString();
         token.email = user.email;
-        token.name = user.name;
+        token.name = user.name || existingUser.name;
       }
       return token;
     },
 
     async session({ session, token }) {
-      // Add token data to session
       if (token) {
         session.user.id = token.id;
         session.user.email = token.email;
