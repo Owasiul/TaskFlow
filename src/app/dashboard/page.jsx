@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
-  Star,
-  Clock,
   Trash2,
   Menu,
   X,
@@ -12,8 +10,8 @@ import {
   BarChart,
   PlusCircleIcon,
 } from "lucide-react";
-import { Button, Modal } from "@heroui/react";
 import { useForm } from "react-hook-form";
+import { Button, Modal } from "@heroui/react";
 
 const menuItems = [
   { icon: Home, label: "Dashboard", href: "/" },
@@ -27,30 +25,41 @@ const Dashboard = () => {
   const [isWide, setIsWide] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [tags, setTags] = useState([]);
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      tags: [], // important
+    },
+  });
+
+  // Watch tags value from form
+  const formTags = watch("tags") || [];
 
   const handleAddTask = (data) => {
     console.log(data);
   };
-
   const addTag = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
-      setTags([...tags, tagInput.trim()]);
+
+      const newTags = [...formTags, tagInput.trim()];
+
+      setValue("tags", newTags); // ← Important: Update form state
       setTagInput("");
       setShowTagInput(false);
     }
   };
 
   const removeTag = (index) => {
-    setTags(tags.filter((_, i) => i !== index));
+    const newTags = formTags.filter((_, i) => i !== index);
+    setValue("tags", newTags); // ← Important: Update form state
   };
 
   useEffect(() => {
@@ -89,37 +98,30 @@ const Dashboard = () => {
           >
             <div className="p-4">
               {/* Button to open modal */}
-              <button
-                onClick={() => setIsModalOpen(true)} // ✅ this was missing
+              <Button
+                onPress={() => setIsModalOpen(true)} // Use onPress (recommended by HeroUI)
                 className="w-full flex items-center justify-center gap-2 bg-violet-600 hover:bg-violet-700 text-white py-3 px-4 rounded-2xl font-medium transition-colors"
               >
                 <PlusCircleIcon />
                 <span>New Task</span>
-              </button>
+              </Button>
 
-              {/* Modal is OUTSIDE the button */}
-              <Modal
-                isOpen={isModalOpen}
-                onOpenChange={(isOpen) => setIsModalOpen(isOpen)}
-                
-
-              >
+              {/* Controlled Modal */}
+              <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen}>
                 <Modal.Backdrop>
-                  <Modal.Container className={`w-120`}>
+                  <Modal.Container size="lg" scrollBehavior="inside">
                     <Modal.Dialog>
-                      <Modal.CloseTrigger
-                        onClick={() => setIsModalOpen(false)}
-                      />
-                      <Modal.Header>
-                        <Modal.Heading className="border-b dark:border-b-white border-b-slate-900 p-2">
-                          Create New Task
-                        </Modal.Heading>
+                      <Modal.CloseTrigger />
+
+                      <Modal.Header className="flex flex-col gap-1 border-b dark:border-b-white border-b-slate-900">
+                        Create New Task
                       </Modal.Header>
-                      <Modal.Body className="p-3 space-y-5 w-120">
-                        {/* form that will add task */}
+
+                      <Modal.Body className="p-3 space-y-5">
                         <form
                           onSubmit={handleSubmit(handleAddTask)}
-                          className="space-y-5 "
+                          className="space-y-5"
+                          id="task-form"
                         >
                           {/* Task Title */}
                           <div className="flex flex-col gap-2">
@@ -187,23 +189,6 @@ const Dashboard = () => {
                             </div>
                           </div>
 
-                          {/* Assignee */}
-                          <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Assignee
-                            </label>
-                            <select
-                              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500"
-                              {...register("assignee")}
-                            >
-                              <option value="">
-                                Search or select member...
-                              </option>
-                              <option value="alice">Alice</option>
-                              <option value="bob">Bob</option>
-                            </select>
-                          </div>
-
                           {/* Cover Photo */}
                           <div className="flex flex-col gap-2">
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -246,8 +231,9 @@ const Dashboard = () => {
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                               Tags
                             </label>
+
                             <div className="flex flex-wrap gap-2 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 min-h-10">
-                              {tags.map((tag, i) => (
+                              {formTags.map((tag, i) => (
                                 <span
                                   key={i}
                                   className="inline-flex items-center gap-1 bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-300 px-3 py-1 rounded-full text-sm"
@@ -262,6 +248,7 @@ const Dashboard = () => {
                                   </button>
                                 </span>
                               ))}
+
                               {showTagInput ? (
                                 <input
                                   autoFocus
@@ -283,6 +270,12 @@ const Dashboard = () => {
                                 </button>
                               )}
                             </div>
+
+                            {errors.tags && (
+                              <p className="text-red-500 text-sm">
+                                {errors.tags.message}
+                              </p>
+                            )}
                           </div>
 
                           {/* Footer */}
@@ -303,15 +296,6 @@ const Dashboard = () => {
                           </div>
                         </form>
                       </Modal.Body>
-                      <Modal.Footer>
-                        <Button
-                          slot="close"
-                          color="primary"
-                          onClick={() => setIsModalOpen(false)}
-                        >
-                          Close
-                        </Button>
-                      </Modal.Footer>
                     </Modal.Dialog>
                   </Modal.Container>
                 </Modal.Backdrop>

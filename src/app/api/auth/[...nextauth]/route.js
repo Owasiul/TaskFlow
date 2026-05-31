@@ -54,7 +54,7 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user?.email) {
-        const usersCollection = dbConnect("users");
+        const usersCollection = await dbConnect("users");
         let existingUser = await usersCollection.findOne({ email: user.email });
 
         if (!existingUser) {

@@ -39,7 +39,7 @@ const Login = () => {
         toast.success("Login Successful");
         router.push("/dashboard");
       } else {
-        toast.error("Google login failed");
+        toast.error(result?.error || "Google login failed");
       }
     } catch (error) {
       toast.error("Google login error");
