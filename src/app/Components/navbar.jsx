@@ -145,11 +145,11 @@ const Navbar = () => {
               >
                 <Modal.Backdrop>
                   <Modal.Container>
-                    <Modal.Dialog>
+                    <Modal.Dialog aria-label="profile-modal-title">
                       <Modal.CloseTrigger
                         onClick={() => setIsModalOpen(false)}
                       />
-                      <Modal.Header>
+                      <Modal.Header id="profile-modal-title">
                         <Modal.Heading>Profile</Modal.Heading>
                       </Modal.Header>
                       <Modal.Body>

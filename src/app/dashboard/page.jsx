@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Button, Modal } from "@heroui/react";
+import { useQuery } from "@tanstack/react-query";
+import useUser from "../hook/useUser";
 
 const menuItems = [
   { icon: Home, label: "Dashboard", href: "/" },
@@ -27,6 +29,22 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTagInput, setShowTagInput] = useState(false);
   const [tagInput, setTagInput] = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
+  const [cloudinaryUrl, setCloudinaryUrl] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const user = useUser();
+
+  const { data: users } = useQuery({
+    queryKey: ["usersData"],
+    queryFn: async () => {
+      const usersData = await fetch(`/auth/users/${user?._id}`);
+      return usersData;
+    },
+  });
+
+  console.log("current user", users);
+
   const {
     register,
     handleSubmit,
@@ -39,12 +57,54 @@ const Dashboard = () => {
     },
   });
 
+  const uploadToCloudinary = async (file) => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+      );
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: "POST", body: formData },
+      );
+      const data = await res.json();
+      if (data.secure_url) {
+        setCloudinaryUrl(data.secure_url);
+      } else {
+        alert("Image upload failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Cloudinary upload error:", err);
+      alert("Image upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setProfileImageFile(file);
+    setCloudinaryUrl(null);
+
+    // Local preview
+    const reader = new FileReader();
+    reader.onloadend = () => setImagePreview(reader.result); // ← was setProfilePreview
+    reader.readAsDataURL(file);
+    setValue("coverPhoto", file, { shouldValidate: true });
+
+    await uploadToCloudinary(file);
+  };
+
   // Watch tags value from form
   const formTags = watch("tags") || [];
 
-  const handleAddTask = (data) => {
-    console.log(data);
-  };
+  // add and remove tag
   const addTag = (e) => {
     if (e.key === "Enter" && tagInput.trim()) {
       e.preventDefault();
@@ -75,6 +135,24 @@ const Dashboard = () => {
   }
 
   const shouldShowSidebar = isOpen || isWide;
+
+  const handleAddTask = async (data) => {
+    const formData = {
+      ...data,
+      photoURL: cloudinaryUrl ?? null,
+    };
+    console.log(formData);
+    const result = await fetch(`$/api/dashboard/${userID}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const responceData = result.json();
+    if (responceData) {
+      setIsModalOpen(false);
+    }
+    console.log(responceData);
+  };
 
   return (
     <div>
@@ -110,10 +188,13 @@ const Dashboard = () => {
               <Modal isOpen={isModalOpen} onOpenChange={setIsModalOpen}>
                 <Modal.Backdrop>
                   <Modal.Container size="lg" scrollBehavior="inside">
-                    <Modal.Dialog>
+                    <Modal.Dialog aria-label="task-modal-title">
                       <Modal.CloseTrigger />
 
-                      <Modal.Header className="flex flex-col gap-1 border-b dark:border-b-white border-b-slate-900">
+                      <Modal.Header
+                        id="task-modal-title"
+                        className="flex flex-col gap-1 border-b dark:border-b-white border-b-slate-900"
+                      >
                         Create New Task
                       </Modal.Header>
 
@@ -194,36 +275,73 @@ const Dashboard = () => {
                             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                               Cover Photo
                             </label>
-                            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-violet-500 transition-colors">
+
+                            <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden cursor-pointer hover:border-violet-500 transition-colors">
                               <input
                                 type="file"
                                 accept="image/*"
+                                onChange={handleImageChange}
                                 className="hidden"
                                 id="cover-photo"
-                                {...register("coverPhoto")}
                               />
-                              <label
-                                htmlFor="cover-photo"
-                                className="cursor-pointer flex flex-col items-center gap-2"
-                              >
-                                <svg
-                                  className="w-10 h-10 text-gray-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
+
+                              {imagePreview ? (
+                                <label
+                                  htmlFor="cover-photo"
+                                  className="block cursor-pointer"
                                 >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 4v16m8-8H4"
+                                  <img
+                                    src={imagePreview}
+                                    alt="Cover preview"
+                                    className="w-full h-40 object-cover"
                                   />
-                                </svg>
-                                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                                  Click or drag photo to upload
-                                </p>
-                              </label>
+                                  {/* Overlay on hover */}
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <span className="text-white text-sm font-medium">
+                                      {uploading
+                                        ? "Uploading..."
+                                        : "Change Photo"}
+                                    </span>
+                                  </div>
+                                </label>
+                              ) : (
+                                // ✅ Empty state
+                                <label
+                                  htmlFor="cover-photo"
+                                  className="cursor-pointer flex flex-col items-center gap-2 p-8"
+                                >
+                                  {uploading ? (
+                                    <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <svg
+                                      className="w-10 h-10 text-gray-400"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 4v16m8-8H4"
+                                      />
+                                    </svg>
+                                  )}
+                                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                    {uploading
+                                      ? "Uploading..."
+                                      : "Click or drag photo to upload"}
+                                  </p>
+                                </label>
+                              )}
                             </div>
+
+                            {/* ✅ Show Cloudinary URL confirmation */}
+                            {cloudinaryUrl && (
+                              <p className="text-green-600 dark:text-green-400 text-xs">
+                                ✓ Image uploaded successfully
+                              </p>
+                            )}
                           </div>
 
                           {/* Tags */}

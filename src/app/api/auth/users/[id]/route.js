@@ -5,12 +5,12 @@ const usersCollection = dbConnect("users");
 
 export async function GET(request, { params }) {
   const { id } = await params;
-
+  const query = { _id: new ObjectId(id) };
   if (!ObjectId.isValid(id)) {
     return Response.json({ message: "Invalid user id" }, { status: 400 });
   }
 
-  const result = await usersCollection.findOne({ _id: new ObjectId(id) });
+  const result = await usersCollection.findOne(query);
 
   if (!result) {
     return Response.json({ message: "User not found" }, { status: 404 });

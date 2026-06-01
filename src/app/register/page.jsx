@@ -68,7 +68,7 @@ const Register = () => {
 
   const submitForm = async (data) => {
     if (uploading) {
-      alert("Please wait for the image to finish uploading.");
+      toast("Please wait for the image to finish uploading.");
       return;
     }
 
