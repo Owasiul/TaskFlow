@@ -172,6 +172,9 @@ const Register = () => {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -243,6 +246,7 @@ const Register = () => {
                         onClick={() => fileInputRef.current?.click()}
                         className="text-xs text-purple-600 hover:text-purple-700 font-medium"
                         disabled={uploading}
+                        aria-label="Change profile picture"
                       >
                         Change
                       </button>
@@ -251,6 +255,7 @@ const Register = () => {
                         onClick={removeImage}
                         className="p-1 text-gray-400 hover:text-red-500 transition"
                         disabled={uploading}
+                        aria-label="Remove profile picture"
                       >
                         <X size={16} />
                       </button>
@@ -309,6 +314,7 @@ const Register = () => {
                 <button
                   onClick={() => googleRegister()}
                   className="flex-1 flex items-center justify-center gap-3 border border-gray-300 hover:bg-gray-50 py-3 rounded-2xl transition"
+                  aria-label="Sign up with Google"
                 >
                   <Image
                     width={20}

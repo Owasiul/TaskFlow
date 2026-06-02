@@ -65,7 +65,12 @@ const Navbar = () => {
           <div
             className={`dropdown ${isLoggedIn && isOnDashboard ? "hidden" : ""}`}
           >
-            <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost lg:hidden"
+              aria-label="Open menu"
+            >
               <MenuIcon className="dark:text-white text-slate-950" />
             </div>
             <ul
@@ -132,6 +137,10 @@ const Navbar = () => {
               <div
                 onClick={() => setIsModalOpen(true)}
                 className="cursor-pointer"
+                role="button"
+                tabIndex={0}
+                aria-label="Open user profile menu"
+                onKeyDown={(e) => e.key === "Enter" && setIsModalOpen(true)}
               >
                 <Avater
                   data={currentUser || session?.user}

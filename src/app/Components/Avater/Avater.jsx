@@ -6,7 +6,11 @@ const Avater = ({ data, onAvatarClick, users }) => {
 
   return (
     <div>
-      <Avatar onClick={onAvatarClick} className="cursor-pointer">
+      <Avatar
+        onClick={onAvatarClick}
+        className="cursor-pointer"
+        aria-label={`User profile for ${user?.name || "User"}`}
+      >
         <Avatar.Image
           alt={user?.name || "User"}
           src={users?.photoURL || user?.name}
