@@ -53,7 +53,7 @@ const SideBar = ({
             animate={{ x: 0 }}
             exit={{ x: -280 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed lg:static top-0 left-0 h-screen w-72 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 flex flex-col z-40"
+            className="fixed lg:static top-0 left-0 h-screen border-r rounded-2xl border-gray-200 dark:border-gray-800 flex flex-col z-40"
           >
             <div className="p-4">
               {/* Button to open modal */}

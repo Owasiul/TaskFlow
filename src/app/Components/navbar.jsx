@@ -12,7 +12,8 @@ import { usePathname } from "next/navigation";
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: session, status } = useSession();
-  const userId = session?.user?.id;
+  // console.log(session);
+  const userId = session?.user?._id;
   const pathName = usePathname();
   const isOnDashboard = pathName === "/dashboard";
 

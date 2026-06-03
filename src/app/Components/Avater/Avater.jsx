@@ -11,11 +11,12 @@ const Avater = ({ data, onAvatarClick, users }) => {
         className="cursor-pointer"
         aria-label={`User profile for ${user?.name || "User"}`}
       >
-        <Avatar.Image
-          alt={user?.name || "User"}
-          src={users?.photoURL || user?.name}
-        />
-        <Avatar.Fallback>{user?.name || "user"}</Avatar.Fallback>
+        {users?.photoURL && (
+          <Avatar.Image alt={user?.name || "User"} src={user?.photoURL} />
+        )}
+        <Avatar.Fallback>
+          {user?.name?.charAt(0)?.toUpperCase() || "U"}
+        </Avatar.Fallback>
       </Avatar>
     </div>
   );

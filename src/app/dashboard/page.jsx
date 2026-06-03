@@ -6,6 +6,8 @@ import useUser from "../hook/useUser";
 import SideBar from "./components/SideBar";
 import { Menu, X } from "lucide-react";
 import { toast } from "react-toastify";
+import { useSession } from "next-auth/react";
+import TaskContent from "./components/TaskContent";
 
 const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -19,7 +21,7 @@ const Dashboard = () => {
   const [cloudinaryUrl, setCloudinaryUrl] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [profileImageFile, setProfileImageFile] = useState(null);
-  const user = useUser();
+  const { data: session } = useSession();
 
   const {
     register,
@@ -110,14 +112,16 @@ const Dashboard = () => {
     return null;
   }
 
+  // add task
   const handleAddTask = async (data) => {
-    if (!user?._id) {
+    const userID = session?.user?._id;
+    if (!userID) {
       toast.warning("Please login first");
     }
     const formData = {
       ...data,
       photoURL: cloudinaryUrl ?? null,
-      userID: user?._id,
+      userID,
     };
 
     const result = await fetch(`/api/dashboard`, {
@@ -128,51 +132,80 @@ const Dashboard = () => {
 
     const responseData = await result.json();
 
+    console.log("responce is", responseData);
 
     if (result.ok) {
       setIsModalOpen(false);
     }
   };
+
   return (
-    <div>
+    <div className="flex min-h-screen bg-white dark:bg-gray-950">
+      {/* Sidebar */}
+      <aside
+        className={`
+          ${isOpen ? "translate-x-0" : "-translate-x-full"} 
+          lg:translate-x-0
+          fixed lg:relative
+          top-0 left-0
+          h-screen
+          w-full md:w-72 lg:w-80
+          bg-white dark:bg-gray-900
+          
+          shadow-md lg:shadow-none
+          transition-transform duration-300 ease-in-out
+          z-40
+          overflow-y-auto
+        `}
+      >
+        <SideBar
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+          isWide={isWide}
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
+          handleSubmit={handleSubmit}
+          handleAddTask={handleAddTask}
+          register={register}
+          errors={errors}
+          handleImageChange={handleImageChange}
+          imagePreview={imagePreview}
+          cloudinaryUrl={cloudinaryUrl}
+          uploading={uploading}
+          formTags={formTags}
+          removeTag={removeTag}
+          addTag={addTag}
+          showTagInput={showTagInput}
+          setShowTagInput={setShowTagInput}
+          setTagInput={setTagInput}
+          tagInput={tagInput}
+        />
+      </aside>
+
       {/* Mobile Menu Button */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-900 rounded-xl shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-900 rounded-lg shadow-md hover:shadow-lg transition-shadow"
         aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
       >
         {isOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
-      <SideBar
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-        isWide={isWide}
-        isModalOpen={isModalOpen}
-        setIsModalOpen={setIsModalOpen}
-        handleSubmit={handleSubmit}
-        handleAddTask={handleAddTask}
-        register={register}
-        errors={errors}
-        handleImageChange={handleImageChange}
-        imagePreview={imagePreview}
-        cloudinaryUrl={cloudinaryUrl}
-        uploading={uploading}
-        formTags={formTags}
-        removeTag={removeTag}
-        addTag={addTag}
-        showTagInput={showTagInput}
-        setShowTagInput={setShowTagInput}
-        setTagInput={setTagInput}
-        tagInput={tagInput}
-      />
-
-      {isOpen && !isWide && (
+      {/* Mobile overlay */}
+      {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
           onClick={() => setIsOpen(false)}
+          role="presentation"
         />
       )}
+
+      {/* Main Content */}
+      <main className="flex-1 w-full overflow-y-auto">
+        <div className="p-6 lg:p-8">
+          <TaskContent />
+        </div>
+      </main>
     </div>
   );
 };
