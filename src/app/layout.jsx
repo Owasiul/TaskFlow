@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 import Navbar from "./Components/navbar";
 import Footer from "./Components/Footer/Footer";
 import { ToastContainer } from "react-toastify";
+import { getServerSession } from "next-auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,7 +21,8 @@ export const metadata = {
   description: "Your Daily Task Solver",
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const session = await getServerSession();
   return (
     <html
       lang="en"
@@ -28,7 +30,7 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col dark:bg-slate-950 dark:text-white bg-white text-slate-800">
-        <Providers>
+        <Providers session={session}>
           <header>
             <Navbar />
           </header>

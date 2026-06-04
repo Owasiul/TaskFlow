@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import useUser from "../hook/useUser";
 import SideBar from "./components/SideBar";
@@ -8,6 +8,8 @@ import { Menu, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useSession } from "next-auth/react";
 import TaskContent from "./components/TaskContent";
+import DashboardStats from "./components/DashboardStats";
+import DashboardSidebar from "./components/DashboardSidebar";
 
 const Dashboard = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -22,6 +24,20 @@ const Dashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [profileImageFile, setProfileImageFile] = useState(null);
   const { data: session } = useSession();
+
+  const userID = session?.user?._id;
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["task", userID],
+    queryFn: async () => {
+      const response = await fetch(`/api/dashboard/${userID}`);
+      if (!response.ok) {
+        toast.warning("Something went wrong");
+        return [];
+      }
+      return response.json();
+    },
+    enabled: !!userID,
+  });
 
   const {
     register,
@@ -203,7 +219,18 @@ const Dashboard = () => {
       {/* Main Content */}
       <main className="flex-1 w-full overflow-y-auto">
         <div className="p-6 lg:p-8">
-          <TaskContent />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Main Content Area */}
+            <div className="lg:col-span-3">
+              <DashboardStats tasks={tasks} />
+              <TaskContent session={session} tasks={tasks} />
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-1">
+              <DashboardSidebar />
+            </div>
+          </div>
         </div>
       </main>
     </div>

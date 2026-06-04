@@ -17,9 +17,10 @@ export async function POST(request) {
     photoURL: task.photoURL || null,
     priority: task.priority,
     tags: task.tags,
+    status: task.status || "todo",
+    isComplete: false,
   };
 
   const result = await taskCollection.insertOne(newTask);
   return Response.json(result);
 }
-
