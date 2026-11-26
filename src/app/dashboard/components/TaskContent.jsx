@@ -2,6 +2,7 @@
 import React from "react";
 import TaskCard from "./TaskCard/TaskCard";
 import Masonry from "react-masonry-css";
+import Link from "next/link";
 
 const TaskContent = ({ session, tasks = [] }) => {
   const breakpointColumnsObj = {
@@ -10,6 +11,9 @@ const TaskContent = ({ session, tasks = [] }) => {
     700: 2,
     500: 1,
   };
+  const taskCompleted = () =>{
+    
+  }
 
   return (
     <div>
@@ -17,12 +21,12 @@ const TaskContent = ({ session, tasks = [] }) => {
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
           Recent Tasks
         </h2>
-        <a
-          href="#"
+        {/* <Link
+          href="/dashboard/allTask"
           className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
         >
           View all
-        </a>
+        </Link> */}
       </div>
       <Masonry
         breakpointCols={breakpointColumnsObj}

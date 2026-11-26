@@ -22,7 +22,10 @@ export async function POST(request) {
       email: body.email,
       password: hashPassword,
       photoURL: body.photoURL,
+      isEmailVerified: false,
+      stauts: "active",
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     // new user
     const result = await usersCollection.insertOne(newUser);
@@ -47,14 +50,14 @@ export async function POST(request) {
 }
 
 // Get User Data
-export async function GET(request) {
-  try {
-    const result = await usersCollection.find().toArray();
-    return Response.json(result);
-  } catch (error) {
-    return Response.json(
-      { success: false, message: error.message },
-      { status: 400 },
-    );
-  }
-}
+// export async function GET(request) {
+//   try {
+//     const result = await usersCollection.find().toArray();
+//     return Response.json(result);
+//   } catch (error) {
+//     return Response.json(
+//       { success: false, message: error.message },
+//       { status: 400 },
+//     );
+//   }
+// }

@@ -187,13 +187,6 @@ const TaskCard = ({ task, onCompleteChange }) => {
 
       {/* Footer Section */}
       <div className="flex flex-col sm:flex-col md:flex-row items-start sm:items-start md:items-center justify-between gap-1.5 sm:gap-2 md:gap-3 pt-1.5 sm:pt-2 md:pt-3 border-t border-default-100/80 text-[10px] sm:text-xs md:text-sm">
-        {/* Placeholder for assignees */}
-        <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 text-default-400">
-          <Users size={11} className="sm:w-3 sm:h-3 md:w-[13px] md:h-[13px]" />
-          <span className="text-[10px] sm:text-xs md:text-xs font-medium hidden md:inline">
-            {isCompleted ? "Completed" : "No assignees"}
-          </span>
-        </div>
 
         {/* Due Date */}
         {dueDate && !isCompleted && (

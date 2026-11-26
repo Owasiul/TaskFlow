@@ -37,7 +37,7 @@ const SideBar = ({
   const [activeItem, setActiveItem] = useState(0);
   const menuItems = [
     { icon: Home, label: "Dashboard", href: "/" },
-    { icon: CheckCircle2, label: "My Tasks", href: "/tasks" },
+    { icon: CheckCircle2, label: "Completed", href: "/completed" },
     { icon: BarChart, label: "Statistics", href: "/statistics" },
     { icon: Trash2, label: "Trash", href: "/trash" },
   ];
